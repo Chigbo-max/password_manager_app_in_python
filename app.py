@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from mongoengine import connect
 
-from apps.admin.views import auth_view
+from apps.auth.views import auth_view
 from helpers.config import Config, init_database
 
 app = Flask(__name__)
