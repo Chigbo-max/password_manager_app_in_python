@@ -61,4 +61,27 @@ class TestAuthService(TestCase):
         assert response_json["status"] == "success"
 
 
+    def test_that_reset_password_function_status_returns_success(self):
+        auth_service = AuthService()
+        data = {"email": "akerele@gmail.com", "master_password": "password"}
+
+        response, status = auth_service.register(data)
+        response_json = response.get_json()
+
+        assert status == 201
+        assert response_json["status"] == "success"
+
+        response, status = auth_service.login(data)
+        response_json = response.get_json()
+
+        assert status == 200
+        assert response_json["status"] == "success"
+
+
+        response, status = auth_service.reset_password(data)
+        response_json = response.get_json()
+        assert status == 201
+        assert response_json["status"] == "success"
+
+
 

@@ -11,6 +11,9 @@ class Config:
     MONGO_URI = os.environ.get('MONGO_URI')
     FRONTEND_URI = os.environ.get('FRONTEND_URI')
 
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+
 
 def init_database():
     try:

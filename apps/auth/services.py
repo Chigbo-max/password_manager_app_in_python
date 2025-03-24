@@ -6,10 +6,11 @@ from flask_jwt_extended import create_refresh_token, create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from apps.auth.authInterface import AuthInterface
-from helpers import Utiility
+from helpers import Utility
 
 from apps.auth.models import User
 from helpers.config import Config
+from helpers.gmailservice import GmailService
 
 
 class AuthService(AuthInterface):
@@ -17,7 +18,6 @@ class AuthService(AuthInterface):
 
     def register(self,data):
         try:
-            # data = request.get_json()
             if User.objects(email=data['email']).first():
                 return jsonify({"message": f"User {data['email']} is already registered"})
 
@@ -44,7 +44,6 @@ class AuthService(AuthInterface):
     def login(self, data):
 
         try:
-            # data = request.get_json()
             email = data['email'].strip().lower()
             master_password = data['master_password'].strip()
 
@@ -67,9 +66,58 @@ class AuthService(AuthInterface):
 
 
     def reset_password(self, data):
-       pass
+
+       try:
+           email = data['email'].strip().lower()
+           user = User.objects(email=email).first()
+
+           if not user:
+               return jsonify({"message": f"User {data['email']} is not registered"})
+
+           reset_token = Utility.generate_token()
+           reset_link = f"{Config.FRONTEND_URI}/reset-password?token={reset_token}"
+
+           user.update(set__reset_token=reset_token)
+
+           email_service = GmailService()
+
+           email_sent = email_service.send_email(
+               to_email=user.email,
+               subject=f"Password Reset for {user.email}",
+               message=f"<p>Click the following link to reset your password: <a href = '{reset_link}'>{reset_link}</a></p>",
+           )
+
+           if email_sent:
+               return jsonify({"status": "success",
+                               "message": f"Password reset mail sent to {user.email} successfully"}), 201
+           return jsonify({"status": "error",
+                           "message": f"password reset mail failed to send, please try again"}), 401
+       except Exception as e:
+           return jsonify({"status": "error",
+                           "message": f"password reset unsuccessful {e}"}), 500
 
 
+    def reset_password_confirm(self, data):
+        try:
+            reset_token = data.get('reset_token')
+            new_password = data.get('new_password')
+
+            if not reset_token or not new_password:
+                return jsonify({"message": f"password reset unsuccessful, please try again"}), 401
+
+            user = User.objects(reset_token=reset_token).first()
+
+            if not user:
+                return jsonify({"message": "Invalid or expired token"}), 401
+
+            user.update(set__master_password=generate_password_hash(new_password),
+            set__reset_token=None)
+
+            return jsonify({"status": "success", "message": f"password reset successfully"}), 201
+
+        except Exception as e:
+            return jsonify({"status": "error",
+                            "message": f"password reset unsuccessful {e}"}), 500
 
 
     def logout(self, data):

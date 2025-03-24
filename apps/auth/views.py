@@ -19,7 +19,11 @@ def login():
 
 @auth_view.route('/reset-password', methods=['POST'])
 def reset_password():
-    return auth_service.login(request.get_json())
+    return auth_service.reset_password(request.get_json())
+
+@auth_view.route('/reset-password-confirm', methods=['POST'])
+def reset_password_confirm():
+    return auth_service.reset_password_confirm(request.get_json())
 
 
 

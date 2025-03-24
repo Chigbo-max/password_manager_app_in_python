@@ -16,6 +16,10 @@ class AuthInterface(ABC):
         pass
 
     @abstractmethod
+    def reset_password_confirm(self, data):
+        pass
+
+    @abstractmethod
     def logout(self, data):
         pass
 
