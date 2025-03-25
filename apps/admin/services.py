@@ -27,6 +27,9 @@ class Admin:
                 return jsonify({"status": "success",
                                 "message": "User account is deactivated successfully"}), 200
 
+            return jsonify({"status": "error",
+                            "message": "Invalid account status"}), 401
+
         except Exception as e:
             print(traceback.format_exc())
             return jsonify({"status": False, "message": str(e)}), 500
@@ -50,6 +53,9 @@ class Admin:
                 user.save()
                 return jsonify({"status": "success",
                                 "message": "User account is suspended successfully"}), 200
+            
+            return jsonify({"status": "error",
+                            "message": "Invalid account status"}), 401
 
         except Exception as e:
             print(traceback.format_exc())
