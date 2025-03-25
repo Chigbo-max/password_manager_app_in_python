@@ -6,6 +6,7 @@ from flask_jwt_extended import create_refresh_token, create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from apps.auth.authInterface import AuthInterface
+from apps.auth.status import AccountStatus
 from helpers import Utility
 
 from apps.auth.models import User
@@ -23,7 +24,8 @@ class AuthService(AuthInterface):
 
             user = User(
                 email=data['email'].strip().lower(),
-                master_password= generate_password_hash(data['master_password'])
+                master_password= generate_password_hash(data['master_password']),
+                status=AccountStatus.ACTIVE,
                 ).save()
 
             access_token = create_access_token(identity=user.email, expires_delta=timedelta(days=1))
@@ -36,7 +38,7 @@ class AuthService(AuthInterface):
                             "refresh_token": refresh_token,
                             }), 201
         except Exception as e:
-            print("Registration Error:", traceback.format_exc())  # Debugging
+            print("Registration Error:", traceback.format_exc())
             return jsonify({"status": "error",
                             "message": f"registration unsuccessful {e}"}), 500
 
@@ -48,6 +50,11 @@ class AuthService(AuthInterface):
             master_password = data['master_password'].strip()
 
             user = User.objects(email=email).first()
+
+            if user.status != AccountStatus.ACTIVE:
+                return jsonify({"status": "error",
+                                "message": "This account has been deactivated, please contact support"}), 401
+
             if user and check_password_hash(user.master_password, master_password):
                 access_token = create_access_token(identity=user.email, expires_delta=timedelta(minutes=30))
                 refresh_token = create_refresh_token(identity=user.email)
@@ -61,6 +68,7 @@ class AuthService(AuthInterface):
             return jsonify({"status": "error",
                             "message": f"login unsuccessful, please register"}), 401
         except Exception as e:
+            print("Login Error:", traceback.format_exc())
             return jsonify({"status": "error",
                             "message": f"login unsuccessful {e}"}), 500
 
