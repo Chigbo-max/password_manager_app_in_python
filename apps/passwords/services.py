@@ -84,5 +84,23 @@ class PasswordsService(PasswordServiceInterface):
 
 
 
-    def delete_credentials(self, data):
-        pass
+    def delete_credentials(self, user_identity, website):
+        email = user_identity
+        if not email:
+            return jsonify({f"status": "error", "message": "Email missing from token"}), 400
+
+        try:
+            user = User.objects.get(email=email)
+            if not user:
+                return jsonify({f"status": "error", "message": "User not found"}), 404
+
+            credentials_entry = PasswordEntry.objects(user=user, website=website).first()
+            if not credentials_entry:
+                return jsonify({f"status": "error",
+                                "message": "No credential saved yet"}), 404
+            credentials_entry.delete()
+            return jsonify({'status': "success",
+                            'message': "credentials successfully deleted"}), 200
+        except Exception as e:
+            return jsonify({'status': "error",
+                            'message': str(e)}), 500

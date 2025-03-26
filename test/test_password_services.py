@@ -61,7 +61,7 @@ class TestPasswordService(TestCase):
             assert PasswordEntry.objects(user=user).count() == 1
 
 
-    def test_that_credentials_returned_returns_200_status_code(self):
+    def test_that_credentials_retrieved_returns_200_status_code(self):
         auth_service = AuthService()
         data = {"email": "akerele@gmail.com", "master_password": "password"}
 
@@ -93,6 +93,41 @@ class TestPasswordService(TestCase):
 
             assert response3.status_code == 201
 
+
+
+    def test_that_credentials_deleted_returns_200_status_code_and_count_is_zero(self):
+        auth_service = AuthService()
+        data = {"email": "akerele@gmail.com", "master_password": "password"}
+
+        response, status = auth_service.register(data)
+        response_json = response.get_json()
+
+        assert status == 201
+        assert response_json["status"] == "success"
+        assert response_json["message"] == "akerele@gmail.com registered successfully"
+        assert User.objects(email="akerele@gmail.com").count() == 1
+
+        with self.app.test_client() as client:
+
+            access_token = client.post("/login", json=data).get_json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+
+            credentials = {"website": "facebook.com", "username":"akerele", "password": "password"}
+
+            response2 = client.post("/save-credentials", json=credentials, headers=headers)
+
+
+            assert response2.status_code == 201
+            user = User.objects(email="akerele@gmail.com").first()
+            assert PasswordEntry.objects(user=user).count() == 1
+
+            response3 = client.post("/delete-credential/facebook.com", headers=headers)
+
+            assert response3.status_code == 200
+
+            user = User.objects.get(email="akerele@gmail.com")
+            assert PasswordEntry.objects(user=user).count() == 0
 
 
 
