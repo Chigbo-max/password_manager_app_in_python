@@ -53,7 +53,7 @@ class Admin:
                 user.save()
                 return jsonify({"status": "success",
                                 "message": "User account is suspended successfully"}), 200
-            
+
             return jsonify({"status": "error",
                             "message": "Invalid account status"}), 401
 
