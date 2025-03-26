@@ -15,3 +15,9 @@ def save_credentials():
     data = request.get_json()
     user_identity = get_jwt_identity()
     return password_service.save_credentials(user_identity, data)
+
+@password_manager_view.route('/retrieve-credentials', methods=['GET'])
+@jwt_required()
+def retrieve_credentials():
+    user_identity = get_jwt_identity()
+    return password_service.retrieve_credentials(user_identity)

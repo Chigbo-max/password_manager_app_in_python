@@ -7,7 +7,7 @@ class PasswordServiceInterface(ABC):
         pass
 
     @abstractmethod
-    def retrieve_credentials(self, data):
+    def retrieve_credentials(self, user_identity):
         pass
 
     @abstractmethod

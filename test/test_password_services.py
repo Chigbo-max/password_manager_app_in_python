@@ -56,11 +56,43 @@ class TestPasswordService(TestCase):
 
             response2 = client.post("/save-credentials", json=credentials, headers=headers)
 
-            # print("Response status:", response2.status_code)
-            # print("Response body:", response2.get_json())
+            assert response2.status_code == 201
+            user = User.objects(email="akerele@gmail.com").first()
+            assert PasswordEntry.objects(user=user).count() == 1
+
+
+    def test_that_credentials_returned_returns_200_status_code(self):
+        auth_service = AuthService()
+        data = {"email": "akerele@gmail.com", "master_password": "password"}
+
+        response, status = auth_service.register(data)
+        response_json = response.get_json()
+
+        assert status == 201
+        assert response_json["status"] == "success"
+        assert response_json["message"] == "akerele@gmail.com registered successfully"
+        assert User.objects(email="akerele@gmail.com").count() == 1
+
+        with self.app.test_client() as client:
+
+            access_token = client.post("/login", json=data).get_json()["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+
+            credentials = {"website": "facebook.com", "username":"akerele", "password": "password"}
+
+            response2 = client.post("/save-credentials", json=credentials, headers=headers)
+
 
             assert response2.status_code == 201
             user = User.objects(email="akerele@gmail.com").first()
             assert PasswordEntry.objects(user=user).count() == 1
+
+            response3 = client.get("/retrieve-credentials", headers=headers)
+
+
+            assert response3.status_code == 201
+
+
 
 
