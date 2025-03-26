@@ -1,4 +1,6 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from apps.auth.services import AuthService
 
 
@@ -25,5 +27,13 @@ def reset_password():
 def reset_password_confirm():
     return auth_service.reset_password_confirm(request.get_json())
 
+@auth_view.route("/get-user-email", methods=["GET"])
+@jwt_required()
+def get_user_email():
+    try:
+        email = get_jwt_identity()
+        return jsonify({"email": email}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 

@@ -1,6 +1,7 @@
 import traceback
 from datetime import timedelta
 
+import bcrypt
 from flask import request, jsonify
 from flask_jwt_extended import create_refresh_token, create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,6 +11,7 @@ from apps.auth.status import AccountStatus
 from helpers import Utility
 
 from apps.auth.models import User
+from helpers.Utility import derive_encryption_key
 from helpers.config import Config
 from helpers.gmailservice import GmailService
 
@@ -22,14 +24,25 @@ class AuthService(AuthInterface):
             if User.objects(email=data['email']).first():
                 return jsonify({"message": f"User {data['email']} is already registered"})
 
+            email = data['email'].strip().lower()
+            master_password = data['master_password'].strip()
+
+            salt = bcrypt.gensalt()
+
+            encryption_key = derive_encryption_key(master_password, salt)
+
+            hashed_password = generate_password_hash(master_password)
+
             user = User(
-                email=data['email'].strip().lower(),
-                master_password= generate_password_hash(data['master_password']),
+                email=email,
+                master_password= hashed_password,
+                salt=salt,
+                encryption_key=encryption_key,
                 status=AccountStatus.ACTIVE,
                 ).save()
 
             access_token = create_access_token(identity=user.email, expires_delta=timedelta(days=1))
-            refresh_token = create_refresh_token(identity=user.email, expires_delta=timedelta(days=1))
+            refresh_token = create_refresh_token(identity= user.email, expires_delta=timedelta(days=1))
 
 
             return jsonify({"status": "success",
@@ -51,13 +64,18 @@ class AuthService(AuthInterface):
 
             user = User.objects(email=email).first()
 
+            encryption_key = derive_encryption_key(master_password, user.salt)
+
+            if encryption_key != user.encryption_key:
+                return jsonify({"message": f"User {email} is not registered"}), 401
+
             if user.status != AccountStatus.ACTIVE:
                 return jsonify({"status": "error",
                                 "message": "This account has been deactivated, please contact support"}), 401
 
             if user and check_password_hash(user.master_password, master_password):
-                access_token = create_access_token(identity=user.email, expires_delta=timedelta(minutes=30))
-                refresh_token = create_refresh_token(identity=user.email)
+                access_token = create_access_token(identity=user.email,  expires_delta=timedelta(minutes=30))
+                refresh_token = create_refresh_token(identity=user.email, expires_delta=timedelta(minutes=30))
 
                 return jsonify({"status": "success",
                                 "message": f"{user.email} logged in successfully",
@@ -118,7 +136,11 @@ class AuthService(AuthInterface):
             if not user:
                 return jsonify({"message": "Invalid or expired token"}), 401
 
-            user.update(set__master_password=generate_password_hash(new_password),
+            encryption_key = derive_encryption_key(new_password, user.salt)
+
+            hashed_password = generate_password_hash(new_password)
+
+            user.update(set__master_password=hashed_password, set__encryption_key=encryption_key,
             set__reset_token=None)
 
             return jsonify({"status": "success", "message": f"password reset successfully"}), 201

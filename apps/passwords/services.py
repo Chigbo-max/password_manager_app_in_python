@@ -1,34 +1,47 @@
-import base64
-import os
-
-from cryptography.fernet import Fernet
 from flask import jsonify
+from flask_jwt_extended import get_jwt_identity
 
-from apps.passwords.models.encryptionkey_model import EncryptionKey
-
-
-def generate_key(user_id):
-   key=base64.urlsafe_b64encode(os.urandom(32)).decode()
-   EncryptionKey(user_id=user_id, secret_key=key).save()
-   return keyd
-
-def get_user_key(user_id):
-    key_entry=EncryptionKey.objects(user_id=user_id).first()
-    if key_entry is None:
-        return jsonify(f"No encryption key found for: {user_id}"), 401
-    return key_entry.secret_key.encode()
-
-def encrypt_password(user_id, password):
-    key = get_user_key(user_id)
-    cipher = Fernet(key)
-    encrypted_password = cipher.encrypt(password.encode())
-    return encrypted_password
-
-def decrypt_password(user_id, encrypted_password):
-    key = get_user_key(user_id)
-    cipher = Fernet(key)
-    decrypted_password = cipher.decrypt(encrypted_password)
-    return decrypted_password.decode()
+from apps.auth.models import User
+from apps.passwords.models import PasswordEntry
+from apps.passwords.passwordserviceinterface import PasswordServiceInterface
+from helpers.passwordsHandler import encrypt_password
 
 
+class PasswordsService(PasswordServiceInterface):
+    def save_credentials(self, user_identity, data):
 
+        if not isinstance(user_identity, str):
+            return jsonify({f"status": "error", "message": "Invalid token data"}), 400
+
+        email =  user_identity
+        if not email:
+            return jsonify({f"status": "error", "message": "Email missing from token"}), 400
+
+        website = data['website']
+        password = data['password']
+
+        user = User.objects.get(email=email)
+
+
+        encrypted_password = encrypt_password(email, password)
+
+        stored_password_entry = PasswordEntry.objects(user=user, website=website).first()
+        if stored_password_entry:
+            return jsonify({'status': "error",
+                            'message': "credentials already saved"}), 401
+
+        new_password_entry = PasswordEntry(
+            user=user,
+            website=website,
+            encrypted_password=encrypted_password,
+        )
+        new_password_entry.save()
+        return jsonify({'status': "success",
+                        'message': "credentials successfully saved",}), 201
+
+
+    def retrieve_credentials(self, data):
+        pass
+
+    def delete_credentials(self, data):
+        pass
