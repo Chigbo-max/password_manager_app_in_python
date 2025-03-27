@@ -13,3 +13,7 @@ class PasswordServiceInterface(ABC):
     @abstractmethod
     def delete_credentials(self, user_identity, website):
         pass
+
+    @abstractmethod
+    def update_credentials(self, user_identity, data, website):
+        pass

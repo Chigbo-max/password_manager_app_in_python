@@ -1,5 +1,10 @@
+from flask import request
+
+from apps.admin.models import AuditLog
+
+
 from flask import jsonify
-from flask_jwt_extended import get_jwt_identity
+from werkzeug.security import check_password_hash
 
 from apps.auth.models import User
 from apps.passwords.models import PasswordEntry
@@ -80,10 +85,6 @@ class PasswordsService(PasswordServiceInterface):
 
 
 
-
-
-
-
     def delete_credentials(self, user_identity, website):
         email = user_identity
         if not email:
@@ -99,8 +100,85 @@ class PasswordsService(PasswordServiceInterface):
                 return jsonify({f"status": "error",
                                 "message": "No credential saved yet"}), 404
             credentials_entry.delete()
+
+
+            log_entry = AuditLog(
+                user=user,
+                action= "deleted credentials",
+                details=f"updated credentials for {website}",
+                ip_address= request.remote_addr,
+                device_info= request.user_agent.string,
+            )
+            log_entry.save()
+
             return jsonify({'status': "success",
-                            'message': "credentials successfully deleted"}), 200
+                            'message': "credentials successfully deleted"
+                 }), 200
         except Exception as e:
             return jsonify({'status': "error",
                             'message': str(e)}), 500
+
+
+    def update_credentials(self, user_identity, data, website):
+        email = user_identity
+
+        try:
+
+            master_password = data.get('master_password')
+
+            user = User.objects.get(email=email)
+
+            if not check_password_hash(user.master_password, master_password):
+                return jsonify({f"status": "error",
+                                "message": "Password incorrect"}), 401
+
+
+            saved_credentials = PasswordEntry.objects(user=user, website=website).first()
+
+            if not saved_credentials:
+                return jsonify({f"status": "error",
+                                "message": "No credential saved yet"}), 404
+
+            if "new_password" in data:
+                new_encrypted_password = encrypt_password(email, data['new_password'])
+                saved_credentials.encrypted_password = new_encrypted_password
+
+            if "new_website" in data:
+                saved_credentials.website = data['new_website']
+
+            if "new_username" in data:
+                saved_credentials.username = data['new_username']
+
+            saved_credentials.save()
+
+            log_entry = AuditLog(
+                user=user,
+                action="updated credentials",
+                details=f"updated credentials for {website}",
+                ip_address=request.remote_addr,
+                device_info=request.user_agent.string,
+            )
+
+            log_entry.save()
+
+            return jsonify({'status': "success",
+                            'message': "credentials successfully updated",
+                            'new_credentials':{
+                                "website": saved_credentials.website,
+                                "username": saved_credentials.username,
+                                "password": saved_credentials.encrypted_password,
+                            }
+                            }), 200
+        except Exception as e:
+            return jsonify({'status': "error",})
+
+
+
+
+
+
+
+
+
+
+

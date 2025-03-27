@@ -2,14 +2,15 @@ import traceback
 
 from flask import jsonify, request
 
+from apps.admin.admininterface import AdminInterface
+from apps.admin.models import AuditLog
 from apps.auth.models import User
 from apps.auth.status import AccountStatus
 
 
-class Admin:
+class Admin(AdminInterface):
 
-    @staticmethod
-    def close_account(data):
+    def close_account(self,data):
 
         try:
             email = data.get('email')
@@ -34,8 +35,8 @@ class Admin:
             print(traceback.format_exc())
             return jsonify({"status": False, "message": str(e)}), 500
 
-    @staticmethod
-    def suspend_account(data):
+
+    def suspend_account(self,data):
 
         try:
             email = data.get('email')
@@ -63,8 +64,7 @@ class Admin:
 
 
 
-    @staticmethod
-    def activate_account(data):
+    def activate_account(self, data):
         try:
             email = data.get('email')
             user = User.objects(email=email).first()
@@ -83,5 +83,25 @@ class Admin:
         except Exception as e:
             print(traceback.format_exc())
             return jsonify({"status": False, "message": str(e)}), 500
+
+
+
+    def view_audit_logs(self):
+        logs = AuditLog.objects()
+
+        log_list = [
+            {
+            "id": str(log.id),
+            "user" : str(log.user.id),
+            "action": log.action,
+            "details": log.details,
+        "ip_address": log.ip_address,
+        "device_info": log.device_info,
+        "timestamp": log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for log in logs
+        ]
+        return jsonify({f"status": "success","log_list": log_list}), 200
+
 
 

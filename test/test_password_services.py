@@ -123,6 +123,7 @@ class TestPasswordService(TestCase):
             assert PasswordEntry.objects(user=user).count() == 1
 
             response3 = client.post("/delete-credential/facebook.com", headers=headers)
+            print(response3.get_json())
 
             assert response3.status_code == 200
 

@@ -20,6 +20,7 @@ def login():
     return auth_service.login(request.get_json())
 
 @auth_view.route('/reset-password', methods=['POST'])
+@jwt_required
 def reset_password():
     return auth_service.reset_password(request.get_json())
 

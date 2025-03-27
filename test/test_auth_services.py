@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from flask import Flask
 from flask_jwt_extended import JWTManager
-from mongoengine import connect, disconnect
+from mongoengine import connect
 import mongomock
 
 from apps.admin.services import Admin
@@ -89,6 +89,7 @@ class TestAuthService(TestCase):
     def test_that_account_closure_function_returns_success(self):
 
         auth_service = AuthService()
+        admin = Admin()
         data = {"email": "akerele@gmail.com", "master_password": "password"}
         response, status = auth_service.register(data)
         response_json = response.get_json()
@@ -101,13 +102,14 @@ class TestAuthService(TestCase):
         assert response_json["status"] == "success"
 
         email={"email": "akerele@gmail.com"}
-        response3, status = Admin.close_account(email)
+        response3, status = admin.close_account(email)
         response_json = response3.get_json()
         assert status == 200
         assert response_json["status"] == "success"
 
     def test_that_account_activation_function_returns_success(self):
         auth_service = AuthService()
+        admin = Admin()
         data = {"email": "akerele@gmail.com", "master_password": "password"}
         response, status = auth_service.register(data)
         response_json = response.get_json()
@@ -120,18 +122,19 @@ class TestAuthService(TestCase):
         assert response_json["status"] == "success"
 
         email = {"email": "akerele@gmail.com"}
-        response3, status = Admin.close_account(email)
+        response3, status = admin.close_account(email)
         response_json = response3.get_json()
         assert status == 200
         assert response_json["status"] == "success"
 
-        response4, status = Admin.activate_account(email)
+        response4, status = admin.activate_account(email)
         response_json = response4.get_json()
         assert status == 200
         assert response_json["status"] == "success"
 
     def test_that_account_suspension_function_returns_success(self):
         auth_service = AuthService()
+        admin = Admin()
         data = {"email": "akerele@gmail.com", "master_password": "password"}
         response, status = auth_service.register(data)
         response_json = response.get_json()
@@ -144,7 +147,7 @@ class TestAuthService(TestCase):
         assert response_json["status"] == "success"
 
         email = {"email": "akerele@gmail.com"}
-        response3, status = Admin.suspend_account(email)
+        response3, status = admin.suspend_account(email)
         response_json = response3.get_json()
         assert status == 200
         assert response_json["status"] == "success"

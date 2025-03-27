@@ -7,6 +7,7 @@ from flask_jwt_extended import create_refresh_token, create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from apps.auth.authInterface import AuthInterface
+from apps.admin.models import AuditLog
 from apps.auth.status import AccountStatus
 from helpers import Utility
 
@@ -27,6 +28,9 @@ class AuthService(AuthInterface):
             email = data['email'].strip().lower()
             master_password = data['master_password'].strip()
 
+            existing_admin = User.objects(role="admin").first()
+            role = "admin" if existing_admin is None else "user"
+
             salt = bcrypt.gensalt()
 
             encryption_key = derive_encryption_key(master_password, salt)
@@ -37,6 +41,7 @@ class AuthService(AuthInterface):
                 email=email,
                 master_password= hashed_password,
                 salt=salt,
+                role=role,
                 encryption_key=encryption_key,
                 status=AccountStatus.ACTIVE,
                 ).save()
@@ -77,11 +82,21 @@ class AuthService(AuthInterface):
                 access_token = create_access_token(identity=user.email,  expires_delta=timedelta(minutes=30))
                 refresh_token = create_refresh_token(identity=user.email, expires_delta=timedelta(minutes=30))
 
+                log_entry = AuditLog(
+                    user=user,
+                    action="LOGIN_SUCCESS",
+                    details="User logged in successfully",
+                    ip_address=request.remote_addr,
+                    device_info=str(request.user_agent),
+                )
+                log_entry.save()
+
                 return jsonify({"status": "success",
                                 "message": f"{user.email} logged in successfully",
                                 "access_token": access_token,
                                 "refresh_token": refresh_token,
                                 }), 200
+
             print("Login error:", traceback.format_exc())
             return jsonify({"status": "error",
                             "message": f"login unsuccessful, please register"}), 401
@@ -142,6 +157,16 @@ class AuthService(AuthInterface):
 
             user.update(set__master_password=hashed_password, set__encryption_key=encryption_key,
             set__reset_token=None)
+
+            log_entry = AuditLog(
+                user=user,
+                action="PASSWORD_RESET_SUCCESS",
+                details="User reset password successfully",
+                ip_address= request.remote_addr,
+                device_info= str(request.user_agent),
+            )
+            log_entry.save()
+
 
             return jsonify({"status": "success", "message": f"password reset successfully"}), 201
 
