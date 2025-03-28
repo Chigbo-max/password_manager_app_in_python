@@ -5,7 +5,7 @@ from mongoengine import Document, StringField, BinaryField, ReferenceField, Date
 from apps.auth.models import User
 
 
-class PasswordEntry(Document):
+class CredentialsEntry(Document):
     user=ReferenceField(User, required=True, reverse_delete_rule=2)
     website=StringField(required=True)
     username=StringField(required=True)

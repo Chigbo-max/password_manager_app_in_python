@@ -27,3 +27,11 @@ def retrieve_credentials():
 def delete_credentials(website):
     user_identity = get_jwt_identity()
     return password_service.delete_credentials(user_identity, website)
+
+@password_manager_view.route('/save-delete-credential', methods=['POST'])
+@jwt_required()
+def save_detected_credentials():
+    user_identity = get_jwt_identity()
+    data = request.get_json()
+    return password_service.save_detected_credentials(user_identity, data)
+

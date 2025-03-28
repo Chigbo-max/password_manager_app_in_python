@@ -8,7 +8,7 @@ from mongoengine import connect
 from apps.auth.models import User
 from apps.auth.services import AuthService
 from apps.auth.views import auth_view
-from apps.passwords.models import PasswordEntry
+from apps.passwords.models import CredentialsEntry
 from apps.passwords.views import password_manager_view
 
 
@@ -58,7 +58,7 @@ class TestPasswordService(TestCase):
 
             assert response2.status_code == 201
             user = User.objects(email="akerele@gmail.com").first()
-            assert PasswordEntry.objects(user=user).count() == 1
+            assert CredentialsEntry.objects(user=user).count() == 1
 
 
     def test_that_credentials_retrieved_returns_200_status_code(self):
@@ -86,7 +86,7 @@ class TestPasswordService(TestCase):
 
             assert response2.status_code == 201
             user = User.objects(email="akerele@gmail.com").first()
-            assert PasswordEntry.objects(user=user).count() == 1
+            assert CredentialsEntry.objects(user=user).count() == 1
 
             response3 = client.get("/retrieve-credentials", headers=headers)
 
@@ -120,7 +120,7 @@ class TestPasswordService(TestCase):
 
             assert response2.status_code == 201
             user = User.objects(email="akerele@gmail.com").first()
-            assert PasswordEntry.objects(user=user).count() == 1
+            assert CredentialsEntry.objects(user=user).count() == 1
 
             response3 = client.post("/delete-credential/facebook.com", headers=headers)
             print(response3.get_json())
@@ -128,7 +128,7 @@ class TestPasswordService(TestCase):
             assert response3.status_code == 200
 
             user = User.objects.get(email="akerele@gmail.com")
-            assert PasswordEntry.objects(user=user).count() == 0
+            assert CredentialsEntry.objects(user=user).count() == 0
 
 
 

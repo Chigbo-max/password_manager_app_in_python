@@ -7,7 +7,7 @@ from flask import jsonify
 from werkzeug.security import check_password_hash
 
 from apps.auth.models import User
-from apps.passwords.models import PasswordEntry
+from apps.passwords.models import CredentialsEntry
 from apps.passwords.passwordserviceinterface import PasswordServiceInterface
 from helpers.passwordsHandler import encrypt_password, decrypt_password
 from mongoengine.errors import DoesNotExist
@@ -33,12 +33,12 @@ class PasswordsService(PasswordServiceInterface):
 
             encrypted_password = encrypt_password(email, password)
 
-            stored_password_entry = PasswordEntry.objects(user=user, website=website).first()
+            stored_password_entry = CredentialsEntry.objects(user=user, website=website).first()
             if stored_password_entry:
                 return jsonify({'status': "error",
                                 'message': "credentials already saved"}), 401
 
-            new_password_entry = PasswordEntry(
+            new_password_entry = CredentialsEntry(
                 user=user,
                 website=website,
                 username=username,
@@ -52,6 +52,28 @@ class PasswordsService(PasswordServiceInterface):
                             'message': "credentials not found",}), 404
 
 
+    def save_detected_credentials(self, user_identity, data):
+        email = user_identity
+
+        website = data['website']
+        username = data['username']
+        password = data['password']
+
+        user = User.objects(email=email).first()
+
+        if not user:
+            return jsonify({f"status": "error",
+                            "message": "User does not exist"}), 404
+
+
+        credentials_entry = CredentialsEntry(user=user, website=website, username=username,
+                                          encrypted_password=encrypt_password(email, password))
+        credentials_entry.save()
+
+        return jsonify({'status': "success",
+                        'message': "credentials successfully saved",}), 201
+
+
 
     def retrieve_credentials(self, user_identity):
         email = user_identity
@@ -62,7 +84,7 @@ class PasswordsService(PasswordServiceInterface):
 
             user = User.objects.get(email=email)
 
-            stored_password = PasswordEntry.objects(user=user)
+            stored_password = CredentialsEntry.objects(user=user)
             if not stored_password:
                 return jsonify({f"status": "error",
                                 "message": "No credential saved yet"}), 404
@@ -95,7 +117,7 @@ class PasswordsService(PasswordServiceInterface):
             if not user:
                 return jsonify({f"status": "error", "message": "User not found"}), 404
 
-            credentials_entry = PasswordEntry.objects(user=user, website=website).first()
+            credentials_entry = CredentialsEntry.objects(user=user, website=website).first()
             if not credentials_entry:
                 return jsonify({f"status": "error",
                                 "message": "No credential saved yet"}), 404
@@ -133,7 +155,7 @@ class PasswordsService(PasswordServiceInterface):
                                 "message": "Password incorrect"}), 401
 
 
-            saved_credentials = PasswordEntry.objects(user=user, website=website).first()
+            saved_credentials = CredentialsEntry.objects(user=user, website=website).first()
 
             if not saved_credentials:
                 return jsonify({f"status": "error",

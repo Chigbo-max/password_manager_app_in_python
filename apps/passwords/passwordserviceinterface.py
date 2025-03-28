@@ -17,3 +17,8 @@ class PasswordServiceInterface(ABC):
     @abstractmethod
     def update_credentials(self, user_identity, data, website):
         pass
+
+    @abstractmethod
+    def save_detected_credentials(self, user_identity, data):
+        pass
+

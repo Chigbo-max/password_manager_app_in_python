@@ -12,9 +12,10 @@ from apps.auth.status import AccountStatus
 from helpers import Utility
 
 from apps.auth.models import User
-from helpers.Utility import derive_encryption_key
+from helpers.Utility import derive_encryption_key, auto_save_credentials
 from helpers.config import Config
 from helpers.gmailservice import GmailService
+from helpers.passwordsHandler import encrypt_password
 
 
 class AuthService(AuthInterface):
@@ -46,6 +47,8 @@ class AuthService(AuthInterface):
                 status=AccountStatus.ACTIVE,
                 ).save()
 
+            auto_save_credentials(user, email, master_password)
+
             access_token = create_access_token(identity=user.email, expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(identity= user.email, expires_delta=timedelta(days=1))
 
@@ -59,6 +62,8 @@ class AuthService(AuthInterface):
             print("Registration Error:", traceback.format_exc())
             return jsonify({"status": "error",
                             "message": f"registration unsuccessful {e}"}), 500
+
+
 
 
     def login(self, data):
@@ -177,6 +182,8 @@ class AuthService(AuthInterface):
 
     def logout(self, data):
         pass
+
+
 
 
 
