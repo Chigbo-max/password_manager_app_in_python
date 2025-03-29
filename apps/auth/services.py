@@ -57,6 +57,7 @@ class AuthService(AuthInterface):
                             "message": f"{user.email} registered successfully",
                             "access_token": access_token,
                             "refresh_token": refresh_token,
+                            "role": role,
                             }), 201
         except Exception as e:
             print("Registration Error:", traceback.format_exc())
@@ -89,6 +90,7 @@ class AuthService(AuthInterface):
 
                 log_entry = AuditLog(
                     user=user,
+                    email=email,
                     action="LOGIN_SUCCESS",
                     details="User logged in successfully",
                     ip_address=request.remote_addr,
@@ -100,6 +102,7 @@ class AuthService(AuthInterface):
                                 "message": f"{user.email} logged in successfully",
                                 "access_token": access_token,
                                 "refresh_token": refresh_token,
+                                "role": user.role,
                                 }), 200
 
             print("Login error:", traceback.format_exc())
@@ -111,7 +114,7 @@ class AuthService(AuthInterface):
                             "message": f"login unsuccessful {e}"}), 500
 
 
-    def reset_password(self, data):
+    def forget_password(self, data):
 
        try:
            email = data['email'].strip().lower()
@@ -125,6 +128,16 @@ class AuthService(AuthInterface):
 
            user.update(set__reset_token=reset_token)
 
+           log_entry = AuditLog(
+               user=user,
+               email=user.email,
+               action="PASSWORD_RESET_LINK",
+               details="Password reset link sent successfully",
+               ip_address=request.remote_addr,
+               device_info=str(request.user_agent),
+           )
+           log_entry.save()
+
            email_service = GmailService()
 
            email_sent = email_service.send_email(
@@ -136,14 +149,16 @@ class AuthService(AuthInterface):
            if email_sent:
                return jsonify({"status": "success",
                                "message": f"Password reset mail sent to {user.email} successfully"}), 201
+
            return jsonify({"status": "error",
                            "message": f"password reset mail failed to send, please try again"}), 401
+
        except Exception as e:
            return jsonify({"status": "error",
                            "message": f"password reset unsuccessful {e}"}), 500
 
 
-    def reset_password_confirm(self, data):
+    def reset_password(self, data):
         try:
             reset_token = data.get('reset_token')
             new_password = data.get('new_password')
@@ -165,6 +180,7 @@ class AuthService(AuthInterface):
 
             log_entry = AuditLog(
                 user=user,
+                email=user.email,
                 action="PASSWORD_RESET_SUCCESS",
                 details="User reset password successfully",
                 ip_address= request.remote_addr,

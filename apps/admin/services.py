@@ -93,6 +93,7 @@ class Admin(AdminInterface):
             {
             "id": str(log.id),
             "user" : str(log.user.id),
+            "email" : str(log.email),
             "action": log.action,
             "details": log.details,
         "ip_address": log.ip_address,

@@ -1,6 +1,8 @@
+from flask_cors import CORS
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from mongoengine import connect
+
 
 from apps.admin.views import admin_view
 from apps.auth.views import auth_view
@@ -8,6 +10,8 @@ from apps.passwords.views import password_manager_view
 from helpers.config import Config
 
 app = Flask(__name__)
+
+CORS(app)
 
 connect(host=Config.MONGO_URI)
 

@@ -12,11 +12,11 @@ class AuthInterface(ABC):
         pass
 
     @abstractmethod
-    def reset_password(self, data):
+    def forget_password(self, data):
         pass
 
     @abstractmethod
-    def reset_password_confirm(self, data):
+    def reset_password(self, data):
         pass
 
     @abstractmethod
