@@ -11,7 +11,7 @@ from helpers.config import Config
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app,resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
 connect(host=Config.MONGO_URI)
 

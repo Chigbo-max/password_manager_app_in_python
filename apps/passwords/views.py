@@ -35,3 +35,12 @@ def save_detected_credentials():
     data = request.get_json()
     return password_service.save_detected_credentials(user_identity, data)
 
+
+@password_manager_view.route('/update-credentials', methods=['PATCH'])
+@jwt_required()
+def update_credentials():
+    user_identity = get_jwt_identity()
+    data = request.get_json()
+    website = data.get('website')
+    return password_service.update_credentials(user_identity, data, website)
+

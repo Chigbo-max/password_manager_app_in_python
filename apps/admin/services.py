@@ -32,7 +32,6 @@ class Admin(AdminInterface):
                             "message": "Invalid account status"}), 401
 
         except Exception as e:
-            print(traceback.format_exc())
             return jsonify({"status": False, "message": str(e)}), 500
 
 
@@ -81,28 +80,46 @@ class Admin(AdminInterface):
                             "message": "User account is activated successfully"}), 200
 
         except Exception as e:
-            print(traceback.format_exc())
             return jsonify({"status": False, "message": str(e)}), 500
 
 
+    def view_all_users(self):
+
+        try:
+            users = User.objects.all()
+            user_list=[
+                {
+                    "email": str(entry.email),
+                    "role": str(entry.role),
+                    "status": str(entry.status.value),
+                    "created_at":entry.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                for entry in users
+            ]
+            return jsonify({"status": "success", "message": user_list}), 200
+        except Exception as e:
+            return jsonify({"status": False, "message": str(e)}), 500
 
     def view_audit_logs(self):
         logs = AuditLog.objects()
 
-        log_list = [
-            {
-            "id": str(log.id),
-            "user" : str(log.user.id),
-            "email" : str(log.email),
-            "action": log.action,
-            "details": log.details,
-        "ip_address": log.ip_address,
-        "device_info": log.device_info,
-        "timestamp": log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            for log in logs
-        ]
-        return jsonify({f"status": "success","log_list": log_list}), 200
+        try:
+            log_list = [
+                {
+                "id": str(log.id),
+                "user" : str(log.user.id),
+                "email" : str(log.email),
+                "action": log.action,
+                "details": log.details,
+                "ip_address": log.ip_address,
+                "device_info": log.device_info,
+                "timestamp": log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                }
+                for log in logs
+            ]
+            return jsonify({"status": "success","log_list": log_list}), 200
+        except Exception as e:
+            return jsonify({"status": False, "message": str(e)}), 500
 
 
 

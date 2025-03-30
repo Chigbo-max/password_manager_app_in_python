@@ -18,3 +18,7 @@ class AdminInterface(ABC):
     @abstractmethod
     def view_audit_logs(self):
         pass
+
+    @abstractmethod
+    def view_all_users(self):
+        pass

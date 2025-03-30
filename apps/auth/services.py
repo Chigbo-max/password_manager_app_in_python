@@ -49,7 +49,7 @@ class AuthService(AuthInterface):
 
             auto_save_credentials(user, email, master_password)
 
-            access_token = create_access_token(identity=user.email, expires_delta=timedelta(days=1))
+            access_token = create_access_token(identity=user.email,  expires_delta=timedelta(days=1))
             refresh_token = create_refresh_token(identity= user.email, expires_delta=timedelta(days=1))
 
 

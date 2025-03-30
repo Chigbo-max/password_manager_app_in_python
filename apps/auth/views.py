@@ -1,6 +1,9 @@
+import traceback
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from apps.auth.models import User
 from apps.auth.services import AuthService
 
 
@@ -35,5 +38,28 @@ def get_user_email():
         return jsonify({"email": email}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@auth_view.route("/get-user", methods=["GET"])
+@jwt_required()
+def get_user():
+    try:
+        current_user =  get_jwt_identity()
+        user = User.objects.get(email=current_user)
+
+        user_list= {
+                "email": str(user.email),
+                "role": str(user.role),
+                "status": str(user.status.value),
+            }
+
+        print(user_list)
+
+        return jsonify({"status": "success", "message": user_list}), 200
+
+    # except User.DoesNotExist:
+    #     return jsonify({"error": "User does not exist"}), 404
+    except Exception as e:
+        return jsonify({"status": False, "message": str(e)}), 500
 
 
