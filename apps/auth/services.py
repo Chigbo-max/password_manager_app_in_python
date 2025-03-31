@@ -85,7 +85,7 @@ class AuthService(AuthInterface):
                                 "message": "This account has been deactivated, please contact support"}), 401
 
             if user and check_password_hash(user.master_password, master_password):
-                access_token = create_access_token(identity=user.email,  expires_delta=timedelta(minutes=30))
+                access_token = create_access_token(identity=user.email,  expires_delta=timedelta(hours=1))
                 refresh_token = create_refresh_token(identity=user.email, expires_delta=timedelta(minutes=30))
 
                 log_entry = AuditLog(
@@ -196,8 +196,7 @@ class AuthService(AuthInterface):
                             "message": f"password reset unsuccessful {e}"}), 500
 
 
-    def logout(self, data):
-        pass
+
 
 
 

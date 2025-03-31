@@ -11,7 +11,8 @@ from helpers.config import Config
 
 app = Flask(__name__)
 
-CORS(app,resources={r"/api/*": {"origins": "http://localhost:5173"}})
+CORS(app,resources={r"/api/*": {"origins": ["http://localhost:5173", "chrome-extension://onnopeojckcighjlhfjkecfjkmacbijd"]}})
+
 
 connect(host=Config.MONGO_URI)
 
