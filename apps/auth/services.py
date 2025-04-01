@@ -83,7 +83,7 @@ class AuthService(AuthInterface):
 
             if user.status != AccountStatus.ACTIVE:
                 return jsonify({"status": "error",
-                                "message": "This account has been deactivated, please contact support"}), 401
+                                "message": "This account is not active, please contact support"}), 401
 
             if user and check_password_hash(user.master_password, master_password):
                 access_token = create_access_token(identity=user.email,  expires_delta=timedelta(hours=2))
@@ -123,6 +123,10 @@ class AuthService(AuthInterface):
 
            if not user:
                return jsonify({"message": f"User {data['email']} is not registered"})
+
+           if user.status != AccountStatus.ACTIVE:
+               return jsonify({"status": "error",
+                               "message": "This account is not active, please contact support"}), 401
 
            reset_token = Utility.generate_token()
            reset_link = f"{Config.FRONTEND_URI}/reset-password?token={reset_token}"
