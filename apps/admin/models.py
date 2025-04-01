@@ -8,7 +8,7 @@ from apps.auth.models import User
 class AuditLog(Document):
 
     user= ReferenceField(User, required=False)
-    email=EmailField(required=True)
+    email=EmailField(required=False)
     action= StringField(required=True)
     details= StringField(required=True)
     ip_address= StringField(required=True)

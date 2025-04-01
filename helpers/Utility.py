@@ -25,4 +25,4 @@ def derive_encryption_key(master_password: str, salt: bytes) -> str:
 
 def auto_save_credentials(user, email, master_password):
     encrypted_password = encrypt_password(email, master_password)
-    CredentialsEntry(user=user, email=email, encrypted_password=encrypted_password).save()
+    CredentialsEntry(user=user, username=email, encrypted_password=encrypted_password).save()

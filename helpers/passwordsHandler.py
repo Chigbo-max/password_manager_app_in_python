@@ -27,10 +27,12 @@ def decrypt_password(user_id, encrypted_password):
     try:
         key = get_user_key(user_id)
         cipher = Fernet(key)
-        decrypted_password = cipher.decrypt(encrypted_password)
+        decrypted_password = cipher.decrypt(
+            encrypted_password if isinstance(encrypted_password, bytes) else encrypted_password.encode())
         return decrypted_password.decode()
     except Exception as e:
-        return jsonify(f"Error decrypting password for: {user_id}: {e}"), 401
+        print(f"Error decrypting password for: {user_id}: {e}")
+        return "[---]"
 
 
 

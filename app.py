@@ -11,7 +11,13 @@ from helpers.config import Config
 
 app = Flask(__name__)
 
-CORS(app,resources={r"/api/*": {"origins": ["http://localhost:5173", "chrome-extension://onnopeojckcighjlhfjkecfjkmacbijd"]}})
+CORS(app, resources={r"/api/*": {
+    "origins": ["http://localhost:5173", "chrome-extension://onnopeojckcighjlhfjkecfjkmacbijd"],
+    "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    "allow_headers": ["Authorization", "Content-Type"],
+    "expose_headers": ["Content-Length", "Authorization"],
+    "supports_credentials": True
+}})
 
 
 connect(host=Config.MONGO_URI)

@@ -53,8 +53,6 @@ def get_user():
                 "status": str(user.status.value),
             }
 
-        print(user_list)
-
         return jsonify({"status": "success", "message": user_list}), 200
 
     # except User.DoesNotExist:

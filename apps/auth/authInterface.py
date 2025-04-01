@@ -19,8 +19,6 @@ class AuthInterface(ABC):
     def reset_password(self, data):
         pass
 
-    @abstractmethod
-    def logout(self, data):
-        pass
+
 
 
