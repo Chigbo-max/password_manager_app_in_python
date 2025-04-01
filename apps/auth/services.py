@@ -27,7 +27,7 @@ class AuthService(AuthInterface):
         try:
             if User.objects(email=data['email']).first():
                 return jsonify({"status": "error",
-                                "message": f"User {data['email']} is already registered"}), 402
+                                "message": f"This account is already registered"}), 402
 
             email = data['email'].strip().lower()
             master_password = data['master_password'].strip()
