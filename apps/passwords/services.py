@@ -141,8 +141,8 @@ class PasswordsService(PasswordServiceInterface):
             log_entry = AuditLog(
                 user=user,
                 email=user.email,
-                action= "deleted credentials",
-                details=f"updated credentials for {website}",
+                action= "delete",
+                details=f"deleted credentials for {website}",
                 ip_address= request.remote_addr,
                 device_info= request.user_agent.string,
             )
@@ -199,7 +199,7 @@ class PasswordsService(PasswordServiceInterface):
 
             log_entry = AuditLog(
                 user=user,
-                action="updated credentials",
+                action="update",
                 details=f"updated credentials for {website}",
                 ip_address=request.remote_addr,
                 device_info=request.user_agent.string,

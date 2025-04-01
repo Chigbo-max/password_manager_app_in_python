@@ -119,7 +119,8 @@ class Admin(AdminInterface):
             ]
             return jsonify({"status": "success","log_list": log_list}), 200
         except Exception as e:
-            return jsonify({"status": False, "message": str(e)}), 500
+            print(traceback.format_exc())
+            return jsonify({"status": "error", "message": str(e)}), 500
 
 
 

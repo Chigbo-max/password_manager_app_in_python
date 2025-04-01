@@ -92,7 +92,7 @@ class AuthService(AuthInterface):
                 log_entry = AuditLog(
                     user=user,
                     email=email,
-                    action="LOGIN_SUCCESS",
+                    action="login",
                     details="User logged in successfully",
                     ip_address=request.remote_addr,
                     device_info=str(request.user_agent),
@@ -132,7 +132,7 @@ class AuthService(AuthInterface):
            log_entry = AuditLog(
                user=user,
                email=user.email,
-               action="PASSWORD_RESET_LINK",
+               action="reset link",
                details="Password reset link sent successfully",
                ip_address=request.remote_addr,
                device_info=str(request.user_agent),
@@ -203,7 +203,7 @@ class AuthService(AuthInterface):
             log_entry = AuditLog(
                 user=user,
                 email=user.email,
-                action="PASSWORD_RESET_SUCCESS",
+                action="password reset",
                 details="User reset password successfully",
                 ip_address=request.remote_addr,
                 device_info=str(request.user_agent),
