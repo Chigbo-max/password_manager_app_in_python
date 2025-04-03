@@ -23,7 +23,7 @@ class PasswordsService(PasswordServiceInterface):
 
         email =  user_identity
         if not email:
-            return jsonify({"status": "error", "message": "Email missing from token"}), 400
+            return jsonify({"status": "error", "message": "Not authorized to access this service"}), 400
 
         website = data['website']
         username = data['username']
